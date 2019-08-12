@@ -274,15 +274,15 @@ namespace Mirror
                 byte[] bytes = MessagePacker.Pack(msg);
                 Profiler.EndSample();
 
-                bool result = true;
-                foreach (KeyValuePair<int, NetworkConnection> kvp in identity.observers)
-                {
-                    if (kvp.Value.isReady)
-                    {
-                        result &= kvp.Value.SendBytes(bytes, channelId);
-                    }
+                // Handle local connection
+                if (identity.observers.ContainsKey(0)) {
+                    identity.observers[0].SendBytes(bytes, channelId);
                 }
-                return result;
+
+                Profiler.BeginSample("Sending to observers");
+                bool r = Transport.activeTransport.ServerSendMany(identity.observers.Keys.ToArray(), channelId, bytes);
+                Profiler.EndSample();
+                return r;
             }
             return false;
         }

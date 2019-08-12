@@ -78,5 +78,19 @@ namespace Mirror
         //            ShoulderRotation.LateUpdate, resulting in projectile
         //            spawns at the point before shoulder rotation.
         public void Update() {}
+
+        public virtual bool ServerSendMany(int[] to, int channel, byte[] bytes) {
+            bool result = true;
+            for (int i = 0; i < to.Length; i++) {
+                int c = to[i];
+                if (c == 0) {
+                    // local connection..
+                    continue;
+                }
+                result &= ServerSend(c, channel, bytes);
+            }
+
+            return result;
+        }
     }
 }
