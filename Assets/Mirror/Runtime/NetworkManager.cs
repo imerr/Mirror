@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -178,8 +179,12 @@ namespace Mirror
             // call it while the NetworkManager exists.
             // -> we don't only call while Client/Server.Connected, because then we would stop if disconnected and the
             //    NetworkClient wouldn't receive the last Disconnect event, result in all kinds of issues
+            Profiler.BeginSample("NetworkServer.Update");
             NetworkServer.Update();
+            Profiler.EndSample();
+            Profiler.BeginSample("NetworkClient.Update");
             NetworkClient.Update();
+            Profiler.EndSample();
             UpdateScene();
         }
 

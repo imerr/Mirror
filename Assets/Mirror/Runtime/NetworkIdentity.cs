@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -554,7 +555,9 @@ namespace Mirror
             bool result = false;
             try
             {
+                Profiler.BeginSample(comp.GetType().ToString() + ".OnSerialize");
                 result = comp.OnSerialize(writer, initialState);
+                Profiler.EndSample();
             }
             catch (Exception e)
             {
@@ -902,6 +905,7 @@ namespace Mirror
                     if (conn.isReady)
                         observers.Add(conn.connectionId, conn);
                 }
+
             }
         }
 
@@ -1031,16 +1035,20 @@ namespace Mirror
                 return;
 
             NetworkWriter writer = NetworkWriterPool.GetWriter();
+            Profiler.BeginSample("Network Object Serialization");
             // serialize all the dirty components and send (if any were dirty)
             if (OnSerializeAllSafely(false, writer))
             {
+                Profiler.BeginSample("Send serialized");
                 // populate cached UpdateVarsMessage and send
                 varsMessage.netId = netId;
                 // segment to avoid reader allocations.
                 // (never null because of our above check)
                 varsMessage.payload = writer.ToArraySegment();
                 NetworkServer.SendToReady(this, varsMessage);
+                Profiler.EndSample();
             }
+            Profiler.EndSample();
             NetworkWriterPool.Recycle(writer);
         }
     }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Mirror
 {
@@ -267,8 +269,10 @@ namespace Mirror
 
             if (identity != null && identity.observers != null)
             {
+                Profiler.BeginSample("MessagerPacket.Pack");
                 // pack message into byte[] once
                 byte[] bytes = MessagePacker.Pack(msg);
+                Profiler.EndSample();
 
                 bool result = true;
                 foreach (KeyValuePair<int, NetworkConnection> kvp in identity.observers)
