@@ -296,10 +296,11 @@ namespace Mirror
         // moved since last time we checked it?
         bool HasMovedOrRotated()
         {
+            var t = targetComponent.transform;
             // moved or rotated?
             // local position/rotation for VR support
-            bool moved = lastPosition != targetComponent.transform.localPosition;
-            bool rotated = lastRotation != targetComponent.transform.localRotation;
+            bool moved = lastPosition != t.localPosition;
+            bool rotated = lastRotation != t.localRotation;
 
             // save last for next frame to compare
             // (only if change was detected. otherwise slow moving objects might
@@ -309,8 +310,8 @@ namespace Mirror
             if (change)
             {
                 // local position/rotation for VR support
-                lastPosition = targetComponent.transform.localPosition;
-                lastRotation = targetComponent.transform.localRotation;
+                lastPosition = t.localPosition;
+                lastRotation = t.localRotation;
             }
             return change;
         }
@@ -329,7 +330,7 @@ namespace Mirror
         void Update()
         {
             // if server then always sync to others.
-            if (isServer)
+            if (NetworkServer.active)
             {
                 // just use OnSerialize via SetDirtyBit only sync when position
                 // changed. set dirty bits 0 or 1
@@ -337,11 +338,11 @@ namespace Mirror
             }
 
             // no 'else if' since host mode would be both
-            if (isClient)
+            if (NetworkClient.active)
             {
                 // send to server if we have local authority (and aren't the server)
                 // -> only if connectionToServer has been initialized yet too
-                if (!isServer && hasAuthority)
+                if (!NetworkServer.active && hasAuthority)
                 {
                     // check only each 'syncInterval'
                     if (Time.time - lastClientSendTime >= syncInterval)
