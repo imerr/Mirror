@@ -1,8 +1,17 @@
 {
     "name": "Mirror",
-    "references": [],
+    "references": [
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:690b1b322271aee4dbc81af6a9db3db0",
+        "GUID:8a2eafa29b15f444eb6d74f94a930e1d"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }
