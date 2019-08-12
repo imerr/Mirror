@@ -13,7 +13,7 @@ namespace Mirror.Tests
             // try serializing less than 32kb and see what happens
             NetworkWriter writer = new NetworkWriter();
             for (int i = 0; i < 30000 / 4; ++i)
-                writer.Write(i);
+                writer.WriteInt32(i);
             Assert.That(writer.Position, Is.EqualTo(30000));
         }
 
@@ -23,7 +23,7 @@ namespace Mirror.Tests
             // try serializing more than 32kb and see what happens
             NetworkWriter writer = new NetworkWriter();
             for (int i = 0; i < 40000 / 4; ++i)
-                writer.Write(i);
+                writer.WriteInt32(i);
             Assert.That(writer.Position, Is.EqualTo(40000));
         }
 
@@ -45,7 +45,7 @@ namespace Mirror.Tests
         {
             byte[] data = {1, 2, 3};
             NetworkWriter writer = new NetworkWriter();
-            writer.Write(data, 0, data.Length);
+            writer.WriteBytes(data, 0, data.Length);
 
             NetworkReader reader = new NetworkReader(writer.ToArray());
             ArraySegment<byte> deserialized = reader.ReadBytesSegment(data.Length);
@@ -89,20 +89,20 @@ namespace Mirror.Tests
         public void TestOverwritingData()
         {
             NetworkWriter writer = new NetworkWriter();
-            writer.Write(Matrix4x4.identity);
-            writer.Write(1.23456789m);
+            writer.WriteMatrix4x4(Matrix4x4.identity);
+            writer.WriteDecimal(1.23456789m);
             writer.Position += 10;
-            writer.Write(Vector3.negativeInfinity);
+            writer.WriteVector3(Vector3.negativeInfinity);
             writer.Position = 46;
             // write right at the boundary before SetLength
-            writer.Write(0xfeed_babe_c0ffee);
+            writer.WriteInt64(0xfeed_babe_c0ffee);
             // test that SetLength clears data beyond length
             writer.SetLength(50);
             // check that jumping leaves 0s between
             writer.Position = 100;
-            writer.Write("no worries, m8");
+            writer.WriteString("no worries, m8");
             writer.Position = 64;
-            writer.Write(true);
+            writer.WriteBoolean(true);
             // check that clipping off the end affect ToArray()'s length
             writer.SetLength(128);
             byte[] output = writer.ToArray();
@@ -129,9 +129,9 @@ namespace Mirror.Tests
         public void TestSetLengthZeroes()
         {
             NetworkWriter writer = new NetworkWriter();
-            writer.Write("I saw");
-            writer.Write(0xA_FADED_DEAD_EEL);
-            writer.Write("and ate it");
+            writer.WriteString("I saw");
+            writer.WriteInt64(0xA_FADED_DEAD_EEL);
+            writer.WriteString("and ate it");
             int position = writer.Position;
             writer.SetLength(10);
             // Setting length should set position too
@@ -178,7 +178,7 @@ namespace Mirror.Tests
         public void TestReading0LengthBytes()
         {
             NetworkWriter writer = new NetworkWriter();
-            writer.Write(new byte[]{}, 0, 0);
+            writer.WriteBytes(new byte[]{}, 0, 0);
             NetworkReader reader = new NetworkReader(writer.ToArray());
             Assert.That(reader.ReadBytes(0).Length, Is.EqualTo(0));
         }
@@ -249,7 +249,7 @@ namespace Mirror.Tests
         [Test]
         public void TestVector2()
         {
-            Vector2[] inputs = new Vector2[]{
+            Vector2[] inputs = {
                 Vector2.right,
                 Vector2.up,
                 Vector2.zero,
@@ -260,7 +260,7 @@ namespace Mirror.Tests
             foreach (Vector2 input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteVector2(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Vector2 output = reader.ReadVector2();
                 Assert.That(output, Is.EqualTo(input));
@@ -270,7 +270,7 @@ namespace Mirror.Tests
         [Test]
         public void TestVector3()
         {
-            Vector3[] inputs = new Vector3[]{
+            Vector3[] inputs = {
                 Vector3.right,
                 Vector3.up,
                 Vector3.zero,
@@ -282,7 +282,7 @@ namespace Mirror.Tests
             foreach (Vector3 input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteVector3(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Vector3 output = reader.ReadVector3();
                 Assert.That(output, Is.EqualTo(input));
@@ -292,7 +292,7 @@ namespace Mirror.Tests
         [Test]
         public void TestVector4()
         {
-            Vector4[] inputs = new Vector4[]{
+            Vector4[] inputs = {
                 Vector3.right,
                 Vector3.up,
                 Vector4.zero,
@@ -303,7 +303,7 @@ namespace Mirror.Tests
             foreach (Vector4 input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteVector4(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Vector4 output = reader.ReadVector4();
                 Assert.That(output, Is.EqualTo(input));
@@ -313,7 +313,7 @@ namespace Mirror.Tests
         [Test]
         public void TestVector2Int()
         {
-            Vector2Int[] inputs = new Vector2Int[]{
+            Vector2Int[] inputs = {
                 Vector2Int.down,
                 Vector2Int.up,
                 Vector2Int.left,
@@ -325,7 +325,7 @@ namespace Mirror.Tests
             foreach (Vector2Int input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteVector2Int(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Vector2Int output = reader.ReadVector2Int();
                 Assert.That(output, Is.EqualTo(input));
@@ -335,7 +335,7 @@ namespace Mirror.Tests
         [Test]
         public void TestVector3Int()
         {
-            Vector3Int[] inputs = new Vector3Int[]{
+            Vector3Int[] inputs = {
                 Vector3Int.down,
                 Vector3Int.up,
                 Vector3Int.left,
@@ -348,7 +348,7 @@ namespace Mirror.Tests
             foreach (Vector3Int input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteVector3Int(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Vector3Int output = reader.ReadVector3Int();
                 Assert.That(output, Is.EqualTo(input));
@@ -358,7 +358,7 @@ namespace Mirror.Tests
         [Test]
         public void TestColor()
         {
-            Color[] inputs = new Color[]{
+            Color[] inputs = {
                 Color.black,
                 Color.blue,
                 Color.cyan,
@@ -370,7 +370,7 @@ namespace Mirror.Tests
             foreach (Color input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteColor(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Color output = reader.ReadColor();
                 Assert.That(output, Is.EqualTo(input));
@@ -380,7 +380,7 @@ namespace Mirror.Tests
         [Test]
         public void TestColor32()
         {
-            Color32[] inputs = new Color32[]{
+            Color32[] inputs = {
                 Color.black,
                 Color.blue,
                 Color.cyan,
@@ -393,7 +393,7 @@ namespace Mirror.Tests
             foreach (Color32 input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteColor32(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Color32 output = reader.ReadColor32();
                 Assert.That(output, Is.EqualTo(input));
@@ -403,7 +403,7 @@ namespace Mirror.Tests
         [Test]
         public void TestQuaternion()
         {
-            Quaternion[] inputs = new Quaternion[]{
+            Quaternion[] inputs = {
                 Quaternion.identity,
                 default,
                 Quaternion.LookRotation(new Vector3(0.3f,0.4f,0.5f)),
@@ -412,7 +412,7 @@ namespace Mirror.Tests
             foreach (Quaternion input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteQuaternion(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Quaternion output = reader.ReadQuaternion();
                 Assert.That(output, Is.EqualTo(input));
@@ -422,7 +422,7 @@ namespace Mirror.Tests
         [Test]
         public void TestRect()
         {
-            Rect[] inputs = new Rect[]{
+            Rect[] inputs = {
                 Rect.zero,
                 new Rect(1004.1f,2.001f,4636,400f),
                 new Rect(-100.622f,-200f,300f,975.6f),
@@ -432,7 +432,7 @@ namespace Mirror.Tests
             foreach (Rect input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteRect(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Rect output = reader.ReadRect();
                 Assert.That(output, Is.EqualTo(input));
@@ -442,7 +442,7 @@ namespace Mirror.Tests
         [Test]
         public void TestPlane()
         {
-            Plane[] inputs = new Plane[]{
+            Plane[] inputs = {
                 new Plane(new Vector3(-0.24f,0.34f,0.2f), 120.2f),
                 new Plane(new Vector3(0.133f,0.34f,0.122f), -10.135f),
                 new Plane(new Vector3(0.133f,-0.0f,float.MaxValue), -13.3f),
@@ -451,7 +451,7 @@ namespace Mirror.Tests
             foreach (Plane input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WritePlane(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Plane output = reader.ReadPlane();
                 // note: Plane constructor does math internally, resulting in
@@ -465,7 +465,7 @@ namespace Mirror.Tests
         [Test]
         public void TestRay()
         {
-            Ray[] inputs = new Ray[]{
+            Ray[] inputs = {
                 new Ray(Vector3.up,Vector3.down),
                 new Ray(new Vector3(0.1f,0.2f,0.3f), new Vector3(0.4f,0.5f,0.6f)),
                 new Ray(new Vector3(-0.3f,0.5f,0.999f), new Vector3(1f,100.1f,20f)),
@@ -473,7 +473,7 @@ namespace Mirror.Tests
             foreach (Ray input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteRay(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Ray output = reader.ReadRay();
                 Assert.That((output.direction - input.direction).magnitude, Is.LessThan(1e-6f));
@@ -484,7 +484,7 @@ namespace Mirror.Tests
         [Test]
         public void TestMatrix4x4()
         {
-            Matrix4x4[] inputs = new Matrix4x4[]{
+            Matrix4x4[] inputs = {
                 Matrix4x4.identity,
                 Matrix4x4.zero,
                 Matrix4x4.Scale(Vector3.one * 0.12345f),
@@ -494,7 +494,7 @@ namespace Mirror.Tests
             foreach (Matrix4x4 input in inputs)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(input);
+                writer.WriteMatrix4x4(input);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 Matrix4x4 output = reader.ReadMatrix4x4();
                 Assert.That(output, Is.EqualTo(input));
@@ -506,8 +506,7 @@ namespace Mirror.Tests
         {
             // These are all bytes which never show up in valid UTF8 encodings.
             // NetworkReader should gracefully handle maliciously crafted input.
-            byte[] invalidUTF8bytes = new byte[]
-            {
+            byte[] invalidUTF8bytes = {
                 0xC0, 0xC1, 0xF5, 0xF6,
                 0xF7, 0xF8, 0xF9, 0xFA,
                 0xFB, 0xFC, 0xFD, 0xFE,
@@ -516,7 +515,7 @@ namespace Mirror.Tests
             foreach (byte invalid in invalidUTF8bytes)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write("an uncorrupted string");
+                writer.WriteString("an uncorrupted string");
                 byte[] data = writer.ToArray();
                 data[10] = invalid;
                 NetworkReader reader = new NetworkReader(data);
@@ -528,7 +527,7 @@ namespace Mirror.Tests
         public void TestReadingTruncatedString()
         {
             NetworkWriter writer = new NetworkWriter();
-            writer.Write("a string longer than 10 bytes");
+            writer.WriteString("a string longer than 10 bytes");
             writer.SetLength(10);
             NetworkReader reader = new NetworkReader(writer.ToArray());
             Assert.Throws<System.IO.EndOfStreamException>(() => reader.ReadString());
@@ -539,8 +538,8 @@ namespace Mirror.Tests
         {
             // write 2 bytes
             NetworkWriter writer = new NetworkWriter();
-            writer.Write((byte)1);
-            writer.Write((byte)2);
+            writer.WriteByte((byte)1);
+            writer.WriteByte((byte)2);
 
             // .ToArray() length is 2?
             Assert.That(writer.ToArray().Length, Is.EqualTo(2));
@@ -556,8 +555,8 @@ namespace Mirror.Tests
         public void TestToArraySegment()
         {
             NetworkWriter writer = new NetworkWriter();
-            writer.Write("hello");
-            writer.Write("world");
+            writer.WriteString("hello");
+            writer.WriteString("world");
 
             NetworkReader reader = new NetworkReader(writer.ToArraySegment());
             Assert.That(reader.ReadString(), Is.EqualTo("hello"));
@@ -571,8 +570,8 @@ namespace Mirror.Tests
             char u = 'ⓤ';
 
             NetworkWriter writer = new NetworkWriter();
-            writer.Write(a);
-            writer.Write(u);
+            writer.WriteChar(a);
+            writer.WriteChar(u);
             NetworkReader reader = new NetworkReader(writer.ToArray());
             char a2 = reader.ReadChar();
             Assert.That(a2, Is.EqualTo(a));
@@ -583,7 +582,7 @@ namespace Mirror.Tests
         [Test]
         public void TestUnicodeString()
         {
-            string[] weirdUnicode = new string[]{
+            string[] weirdUnicode = {
                 "𝔲𝔫𝔦𝔠𝔬𝔡𝔢 𝔱𝔢𝔰𝔱",
                 "𝖚𝖓𝖎𝖈𝖔𝖉𝖊 𝖙𝖊𝖘𝖙",
                 "𝐮𝐧𝐢𝐜𝐨𝐝𝐞 𝐭𝐞𝐬𝐭",
@@ -623,7 +622,7 @@ namespace Mirror.Tests
             foreach (string weird in weirdUnicode)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(weird);
+                writer.WriteString(weird);
                 byte[] data = writer.ToArray();
                 NetworkReader reader = new NetworkReader(data);
                 string str = reader.ReadString();
@@ -822,7 +821,7 @@ namespace Mirror.Tests
         {
             Guid originalGuid = new Guid("0123456789abcdef9876543210fedcba");
             NetworkWriter writer = new NetworkWriter();
-            writer.Write(originalGuid);
+            writer.WriteGuid(originalGuid);
 
             NetworkReader reader = new NetworkReader(writer.ToArray());
             Guid readGuid = reader.ReadGuid();
@@ -832,7 +831,7 @@ namespace Mirror.Tests
         [Test]
         public void TestFloats()
         {
-            float[] weirdFloats = new float[]{
+            float[] weirdFloats = {
                 0f,
                 -0f,
                 float.Epsilon,
@@ -853,7 +852,7 @@ namespace Mirror.Tests
             foreach (float weird in weirdFloats)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(weird);
+                writer.WriteSingle(weird);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 float readFloat = reader.ReadSingle();
                 Assert.That(readFloat, Is.EqualTo(weird));
@@ -863,7 +862,7 @@ namespace Mirror.Tests
         [Test]
         public void TestDoubles()
         {
-            double[] weirdDoubles = new double[]{
+            double[] weirdDoubles = {
                 0d,
                 -0d,
                 double.Epsilon,
@@ -884,7 +883,7 @@ namespace Mirror.Tests
             foreach (double weird in weirdDoubles)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(weird);
+                writer.WriteDouble(weird);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 double readDouble = reader.ReadDouble();
                 Assert.That(readDouble, Is.EqualTo(weird));
@@ -894,7 +893,7 @@ namespace Mirror.Tests
         [Test]
         public void TestDecimals()
         {
-            decimal[] weirdDecimals = new decimal[]{
+            decimal[] weirdDecimals = {
                 decimal.Zero,
                 -decimal.Zero,
                 decimal.MaxValue,
@@ -905,7 +904,7 @@ namespace Mirror.Tests
             foreach (decimal weird in weirdDecimals)
             {
                 NetworkWriter writer = new NetworkWriter();
-                writer.Write(weird);
+                writer.WriteDecimal(weird);
                 NetworkReader reader = new NetworkReader(writer.ToArray());
                 decimal readDecimal = reader.ReadDecimal();
                 Assert.That(readDecimal, Is.EqualTo(weird));
@@ -915,18 +914,18 @@ namespace Mirror.Tests
         [Test]
         public void TestFloatBinaryCompatibility()
         {
-            float[] weirdFloats = new float[]{
+            float[] weirdFloats = {
                 ((float) Math.PI) / 3.0f,
                 ((float) Math.E) / 3.0f
             };
-            byte[] expected = new byte[]{
+            byte[] expected = {
                 146, 10,134, 63,
                 197,245,103, 63,
             };
             NetworkWriter writer = new NetworkWriter();
             foreach (float weird in weirdFloats)
             {
-                writer.Write(weird);
+                writer.WriteSingle(weird);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -934,18 +933,18 @@ namespace Mirror.Tests
         [Test]
         public void TestDoubleBinaryCompatibility()
         {
-            double[] weirdDoubles = new double[]{
+            double[] weirdDoubles = {
                 Math.PI / 3.0d,
                 Math.E / 3.0d
             };
-            byte[] expected = new byte[]{
+            byte[] expected = {
                 101,115, 45, 56, 82,193,240, 63,
                 140,116,112,185,184,254,236, 63,
             };
             NetworkWriter writer = new NetworkWriter();
             foreach (double weird in weirdDoubles)
             {
-                writer.Write(weird);
+                writer.WriteDouble(weird);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -953,11 +952,11 @@ namespace Mirror.Tests
         [Test]
         public void TestDecimalBinaryCompatibility()
         {
-            decimal[] weirdDecimals = new decimal[]{
+            decimal[] weirdDecimals = {
                 ((decimal) Math.PI) / 3.0m,
                 ((decimal) Math.E) / 3.0m
             };
-            byte[] expected = new byte[]{
+            byte[] expected = {
                 0x00, 0x00, 0x1C, 0x00, 0x12, 0x37, 0xD6, 0x21, 0xAB, 0xEA,
                 0x84, 0x0A, 0x5B, 0x5E, 0xB1, 0x03, 0x00, 0x00, 0x0E, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0xF0, 0x6D, 0xC2, 0xA4, 0x68, 0x52,
@@ -966,7 +965,7 @@ namespace Mirror.Tests
             NetworkWriter writer = new NetworkWriter();
             foreach (decimal weird in weirdDecimals)
             {
-                writer.Write(weird);
+                writer.WriteDecimal(weird);
             }
             //Debug.Log(BitConverter.ToString(writer.ToArray()));
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
@@ -975,12 +974,12 @@ namespace Mirror.Tests
         [Test]
         public void TestByteEndianness()
         {
-            byte[] values = new byte[]{0x12,0x43,0x00,0xff,0xab,0x02,0x20};
-            byte[] expected = new byte[]{0x12,0x43,0x00,0xff,0xab,0x02,0x20};
+            byte[] values = {0x12,0x43,0x00,0xff,0xab,0x02,0x20};
+            byte[] expected = {0x12,0x43,0x00,0xff,0xab,0x02,0x20};
             NetworkWriter writer = new NetworkWriter();
             foreach (byte value in values)
             {
-                writer.Write(value);
+                writer.WriteByte(value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -988,12 +987,12 @@ namespace Mirror.Tests
         [Test]
         public void TestUShortEndianness()
         {
-            ushort[] values = new ushort[]{0x0000,0x1234,0xabcd,0xF00F,0x0FF0,0xbeef};
-            byte[] expected = new byte[]{0x00,0x00,0x34,0x12,0xcd,0xab,0x0F,0xF0,0xF0,0x0F,0xef,0xbe};
+            ushort[] values = {0x0000,0x1234,0xabcd,0xF00F,0x0FF0,0xbeef};
+            byte[] expected = {0x00,0x00,0x34,0x12,0xcd,0xab,0x0F,0xF0,0xF0,0x0F,0xef,0xbe};
             NetworkWriter writer = new NetworkWriter();
             foreach (ushort value in values)
             {
-                writer.Write(value);
+                writer.WriteUInt16(value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1001,12 +1000,12 @@ namespace Mirror.Tests
         [Test]
         public void TestUIntEndianness()
         {
-            uint[] values = new uint[]{0x12345678,0xabcdef09,0xdeadbeef};
-            byte[] expected = new byte[]{0x78,0x56,0x34,0x12,0x09,0xef,0xcd,0xab,0xef,0xbe,0xad,0xde};
+            uint[] values = {0x12345678,0xabcdef09,0xdeadbeef};
+            byte[] expected = {0x78,0x56,0x34,0x12,0x09,0xef,0xcd,0xab,0xef,0xbe,0xad,0xde};
             NetworkWriter writer = new NetworkWriter();
             foreach (uint value in values)
             {
-                writer.Write(value);
+                writer.WriteUInt32(value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1014,12 +1013,12 @@ namespace Mirror.Tests
         [Test]
         public void TestULongEndianness()
         {
-            ulong[] values = new ulong[]{0x0123456789abcdef,0xdeaded_beef_c0ffee};
-            byte[] expected = new byte[]{0xef,0xcd,0xab,0x89,0x67,0x45,0x23,0x01,0xee,0xff,0xc0,0xef,0xbe,0xed,0xad,0xde};
+            ulong[] values = {0x0123456789abcdef,0xdeaded_beef_c0ffee};
+            byte[] expected = {0xef,0xcd,0xab,0x89,0x67,0x45,0x23,0x01,0xee,0xff,0xc0,0xef,0xbe,0xed,0xad,0xde};
             NetworkWriter writer = new NetworkWriter();
             foreach (ulong value in values)
             {
-                writer.Write(value);
+                writer.WriteUInt64(value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1027,12 +1026,12 @@ namespace Mirror.Tests
         [Test]
         public void TestSbyteEndianness()
         {
-            byte[] values = new byte[]{0x12,0x43,0x00,0xff,0xab,0x02,0x20};
-            byte[] expected = new byte[]{0x12,0x43,0x00,0xff,0xab,0x02,0x20};
+            byte[] values = {0x12,0x43,0x00,0xff,0xab,0x02,0x20};
+            byte[] expected = {0x12,0x43,0x00,0xff,0xab,0x02,0x20};
             NetworkWriter writer = new NetworkWriter();
             foreach (byte value in values)
             {
-                writer.Write((sbyte) value);
+                writer.WriteSByte((sbyte) value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1040,12 +1039,12 @@ namespace Mirror.Tests
         [Test]
         public void TestShortEndianness()
         {
-            ushort[] values = new ushort[]{0x0000,0x1234,0xabcd,0xF00F,0x0FF0,0xbeef};
-            byte[] expected = new byte[]{0x00,0x00,0x34,0x12,0xcd,0xab,0x0F,0xF0,0xF0,0x0F,0xef,0xbe};
+            ushort[] values = {0x0000,0x1234,0xabcd,0xF00F,0x0FF0,0xbeef};
+            byte[] expected = {0x00,0x00,0x34,0x12,0xcd,0xab,0x0F,0xF0,0xF0,0x0F,0xef,0xbe};
             NetworkWriter writer = new NetworkWriter();
             foreach (ushort value in values)
             {
-                writer.Write((short) value);
+                writer.WriteInt16((short) value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1053,12 +1052,12 @@ namespace Mirror.Tests
         [Test]
         public void TestIntEndianness()
         {
-            uint[] values = new uint[]{0x12345678,0xabcdef09,0xdeadbeef};
-            byte[] expected = new byte[]{0x78,0x56,0x34,0x12,0x09,0xef,0xcd,0xab,0xef,0xbe,0xad,0xde};
+            uint[] values = {0x12345678,0xabcdef09,0xdeadbeef};
+            byte[] expected = {0x78,0x56,0x34,0x12,0x09,0xef,0xcd,0xab,0xef,0xbe,0xad,0xde};
             NetworkWriter writer = new NetworkWriter();
             foreach (uint value in values)
             {
-                writer.Write((int) value);
+                writer.WriteInt32((int) value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1066,12 +1065,12 @@ namespace Mirror.Tests
         [Test]
         public void TestLongEndianness()
         {
-            ulong[] values = new ulong[]{0x0123456789abcdef,0xdeaded_beef_c0ffee};
-            byte[] expected = new byte[]{0xef,0xcd,0xab,0x89,0x67,0x45,0x23,0x01,0xee,0xff,0xc0,0xef,0xbe,0xed,0xad,0xde};
+            ulong[] values = {0x0123456789abcdef,0xdeaded_beef_c0ffee};
+            byte[] expected = {0xef,0xcd,0xab,0x89,0x67,0x45,0x23,0x01,0xee,0xff,0xc0,0xef,0xbe,0xed,0xad,0xde};
             NetworkWriter writer = new NetworkWriter();
             foreach (ulong value in values)
             {
-                writer.Write((long) value);
+                writer.WriteInt64((long) value);
             }
             Assert.That(writer.ToArray(), Is.EqualTo(expected));
         }
@@ -1081,23 +1080,23 @@ namespace Mirror.Tests
         {
             // write all simple types once
             NetworkWriter writer = new NetworkWriter();
-            writer.Write((char)1);
-            writer.Write((byte)2);
-            writer.Write((sbyte)3);
-            writer.Write(true);
-            writer.Write((short)4);
-            writer.Write((ushort)5);
-            writer.Write(6);
-            writer.Write(7U);
-            writer.Write(8L);
-            writer.Write(9UL);
-            writer.Write(10.0F);
-            writer.Write(11.0D);
-            writer.Write((decimal)12);
-            writer.Write((string)null);
-            writer.Write("");
-            writer.Write("13");
-            writer.Write(new byte[] { 14, 15 }, 0, 2); // just the byte array, no size info etc.
+            writer.WriteChar((char)1);
+            writer.WriteByte((byte)2);
+            writer.WriteSByte((sbyte)3);
+            writer.WriteBoolean(true);
+            writer.WriteInt16((short)4);
+            writer.WriteUInt16((ushort)5);
+            writer.WriteInt32(6);
+            writer.WriteUInt32(7U);
+            writer.WriteInt64(8L);
+            writer.WriteUInt64(9UL);
+            writer.WriteSingle(10.0F);
+            writer.WriteDouble(11.0D);
+            writer.WriteDecimal((decimal)12);
+            writer.WriteString((string)null);
+            writer.WriteString("");
+            writer.WriteString("13");
+            writer.WriteBytes(new byte[] { 14, 15 }, 0, 2); // just the byte array, no size info etc.
             writer.WriteBytesAndSize((byte[])null); // [SyncVar] struct values can have uninitialized byte arrays, null needs to be supported
             writer.WriteBytesAndSize(new byte[] { 17, 18 }, 0, 2); // buffer, no-offset, count
             writer.WriteBytesAndSize(new byte[] { 19, 20, 21 }, 1, 2); // buffer, offset, count

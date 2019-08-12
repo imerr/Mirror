@@ -5,8 +5,6 @@ namespace Mirror.Examples.Additive
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : NetworkBehaviour
     {
-        CharacterController characterController;
-
         public override void OnStartServer()
         {
             base.OnStartServer();
@@ -14,22 +12,34 @@ namespace Mirror.Examples.Additive
         }
 
         [SyncVar(hook = nameof(SetColor))]
-        public Color playerColor = Color.black;
+        Color playerColor = Color.black;
 
         // Unity makes a clone of the material when GetComponent<Renderer>().material is used
         // Cache it here and Destroy it in OnDestroy to prevent a memory leak
-        Material materialClone;
+        Material cachedMaterial;
 
         void SetColor(Color color)
         {
-            if (materialClone == null) materialClone = GetComponent<Renderer>().material;
-            materialClone.color = color;
+            if (cachedMaterial == null) cachedMaterial = GetComponent<Renderer>().material;
+            cachedMaterial.color = color;
         }
 
-        private void OnDestroy()
+        void OnDisable()
         {
-            Destroy(materialClone);
+            if (isLocalPlayer)
+            {
+                Camera.main.transform.SetParent(null);
+                Camera.main.transform.localPosition = new Vector3(0f, 50f, 0f);
+                Camera.main.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
+            }
         }
+
+        void OnDestroy()
+        {
+            Destroy(cachedMaterial);
+        }
+
+        CharacterController characterController;
 
         public override void OnStartLocalPlayer()
         {
