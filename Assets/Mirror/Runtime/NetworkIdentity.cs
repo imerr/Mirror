@@ -1159,13 +1159,13 @@ namespace Mirror
                     // only clear bits if we sent something
                     ClearDirtyBits();
                 }
+                Profiler.EndSample();
                 NetworkWriterPool.Recycle(writer);
             }
             else
             {
                 ClearDirtyBits();
             }
-            Profiler.EndSample();
         }
 
         private void ClearDirtyBits()
