@@ -95,7 +95,7 @@ namespace Mirror
             // read message type (varint)
             try
             {
-                msgType = (int)messageReader.ReadUInt16();
+                msgType = messageReader.ReadUInt16();
                 return true;
             }
             catch (System.IO.EndOfStreamException)
@@ -105,7 +105,7 @@ namespace Mirror
             }
         }
 
-        internal static NetworkMessageDelegate MessageHandler<T>(Action<NetworkConnection, T> handler) where T : IMessageBase, new() => networkMessage =>
+        internal static NetworkMessageDelegate MessageHandler<T>(Action<NetworkConnection, T> handler, bool requireAuthenication) where T : IMessageBase, new() => networkMessage =>
         {
             // protect against DOS attacks if attackers try to send invalid
             // data packets to crash the server/client. there are a thousand
@@ -122,6 +122,14 @@ namespace Mirror
             T message = default;
             try
             {
+                if (requireAuthenication && !networkMessage.conn.isAuthenticated)
+                {
+                    // message requires authentication, but the connection was no authnticated
+                    Debug.LogWarning($"Closing connection: {networkMessage.conn.connectionId}. Received message {typeof(T)} that required authentication, but the user has not authenticated yet");
+                    networkMessage.conn.Disconnect();
+                    return;
+                }
+
                 message = networkMessage.ReadMessage<T>();
             }
             catch (Exception exception)
@@ -130,6 +138,12 @@ namespace Mirror
                 networkMessage.conn.Disconnect();
                 return;
             }
+            finally
+            {
+                // TODO: Figure out the correct channel
+                NetworkDiagnostics.OnReceive(message, -1, networkMessage.reader.Length);
+            }
+
             handler(networkMessage.conn, message);
         };
     }

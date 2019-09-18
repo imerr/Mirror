@@ -17,7 +17,7 @@ namespace Mirror
     public abstract class Transport : MonoBehaviour
     {
         /// <summary>
-        /// The current transport used by Mirror. 
+        /// The current transport used by Mirror.
         /// </summary>
         public static Transport activeTransport;
 
@@ -187,7 +187,7 @@ namespace Mirror
         //            spawns at the point before shoulder rotation.
         public void Update() {}
 
-        public virtual bool ServerSendMany(int[] to, int channel, byte[] bytes) {
+        public virtual bool ServerSendMany(int[] to, int channel, byte[] bytes, bool includeSelf, int self, ref int count) {
             bool result = true;
             for (int i = 0; i < to.Length; i++) {
                 int c = to[i];
@@ -195,7 +195,11 @@ namespace Mirror
                     // local connection..
                     continue;
                 }
-                result &= ServerSend(c, channel, bytes);
+                bool isSelf = c == self;
+                if (!isSelf || includeSelf) {
+                    count++;
+                    result &= ServerSend(c, channel, bytes);
+                }
             }
 
             return result;
