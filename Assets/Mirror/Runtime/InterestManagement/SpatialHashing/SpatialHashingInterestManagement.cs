@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Mirror
 {
-    public class SpatialHashingInterestManagement : InterestManagement
+    public class SpatialHashingInterestManagement : IntervalInterestManagement
     {
         // view range
         // note: unlike uMMORPG, this can now be changed AT RUNTIME because

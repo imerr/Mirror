@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Mirror
 {
-    public class BruteForceInterestManagement : InterestManagement
+    public class BruteForceInterestManagement : IntervalInterestManagement
     {
         // visibility radius
         public float visibilityRadius = float.MaxValue;
