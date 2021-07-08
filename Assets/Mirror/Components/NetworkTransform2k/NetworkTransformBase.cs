@@ -66,7 +66,7 @@ namespace Mirror
         public int bufferTimeMultiplier = 3;
         public float bufferTime => sendInterval * bufferTimeMultiplier;
         [Tooltip("Buffer size limit to avoid ever growing list memory consumption attacks.")]
-        public int bufferSizeLimit = 100;
+        public int bufferSizeLimit = 64;
 
         [Tooltip("Start to accelerate interpolation if buffer size is >= threshold. Needs to be larger than bufferTimeMultiplier.")]
         public int catchupThreshold = 6;
