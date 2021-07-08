@@ -372,7 +372,7 @@ namespace Mirror
         }
 
         // common Teleport code for client->server and server->client
-        void OnTeleport(Vector3 destination)
+        protected virtual void OnTeleport(Vector3 destination)
         {
             // reset any in-progress interpolation & buffers
             Reset();
