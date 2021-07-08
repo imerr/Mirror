@@ -6,12 +6,24 @@ using UnityEngine;
 
 namespace Mirror.Tests.NetworkTransform2k
 {
+    // helper class to expose some of the protected methods
+    public class NetworkTransformExposed : NetworkTransform
+    {
+        public new NTSnapshot ConstructSnapshot() => base.ConstructSnapshot();
+        public new void ApplySnapshot(NTSnapshot start, NTSnapshot goal, NTSnapshot interpolated) =>
+            base.ApplySnapshot(start, goal, interpolated);
+        public new void OnClientToServerSync(Vector3? position, Quaternion? rotation, Vector3? scale) =>
+            base.OnClientToServerSync(position, rotation, scale);
+        public new void OnServerToClientSync(Vector3? position, Quaternion? rotation, Vector3? scale) =>
+            base.OnServerToClientSync(position, rotation, scale);
+    }
+
     public class NetworkTransform2kTests : MirrorTest
     {
         // networked and spawned NetworkTransform
         NetworkConnectionToClient connectionToClient;
         Transform transform;
-        NetworkTransform component;
+        NetworkTransformExposed component;
 
         [SetUp]
         public override void SetUp()

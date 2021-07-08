@@ -100,7 +100,7 @@ namespace Mirror
         // snapshot functions //////////////////////////////////////////////////
         // construct a snapshot of the current state
         // => internal for testing
-        internal NTSnapshot ConstructSnapshot()
+        protected virtual NTSnapshot ConstructSnapshot()
         {
             // NetworkTime.localTime for double precision until Unity has it too
             return new NTSnapshot(
@@ -124,7 +124,7 @@ namespace Mirror
         //
         // NOTE: stuck detection is unnecessary here.
         //       we always set transform.position anyway, we can't get stuck.
-        internal virtual void ApplySnapshot(NTSnapshot start, NTSnapshot goal, NTSnapshot interpolated)
+        protected virtual void ApplySnapshot(NTSnapshot start, NTSnapshot goal, NTSnapshot interpolated)
         {
             // local position/rotation for VR support
             //
@@ -150,8 +150,7 @@ namespace Mirror
             OnClientToServerSync(position, rotation, scale);
 
         // local authority client sends sync message to server for broadcasting
-        // => internal for testing
-        internal virtual void OnClientToServerSync(Vector3? position, Quaternion? rotation, Vector3? scale)
+        protected virtual void OnClientToServerSync(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             // only apply if in client authority mode
             if (!clientAuthority) return;
@@ -194,8 +193,7 @@ namespace Mirror
             OnServerToClientSync(position, rotation, scale);
 
         // server broadcasts sync message to all clients
-        // => internal for testing
-        internal virtual void OnServerToClientSync(Vector3? position, Quaternion? rotation, Vector3? scale)
+        protected virtual void OnServerToClientSync(Vector3? position, Quaternion? rotation, Vector3? scale)
         {
             // in host mode, the server sends rpcs to all clients.
             // the host client itself will receive them too.
