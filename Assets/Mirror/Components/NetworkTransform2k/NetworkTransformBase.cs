@@ -106,7 +106,7 @@ namespace Mirror
             // NetworkTime.localTime for double precision until Unity has it too
             return new NTSnapshot(
                 // our local time is what the other end uses as remote time
-                NetworkTime.localTime,
+                NetworkTime.localFrameTime,
                 // the other end fills out local time itself
                 0,
                 targetComponent.localPosition,
@@ -179,7 +179,7 @@ namespace Mirror
             // construct snapshot with batch timestamp to save bandwidth
             NTSnapshot snapshot = new NTSnapshot(
                 timestamp,
-                NetworkTime.localTime,
+                NetworkTime.localFrameTime,
                 position.Value, rotation.Value, scale.Value
             );
 
@@ -232,7 +232,7 @@ namespace Mirror
             // construct snapshot with batch timestamp to save bandwidth
             NTSnapshot snapshot = new NTSnapshot(
                 timestamp,
-                NetworkTime.localTime,
+                NetworkTime.localFrameTime,
                 position.Value, rotation.Value, scale.Value
             );
 
@@ -245,7 +245,7 @@ namespace Mirror
         {
             // broadcast to all clients each 'sendInterval'
             // (client with authority will drop the rpc)
-            // NetworkTime.localTime for double precision until Unity has it too
+            // NetworkTime.localFrameTime for double precision until Unity has it too
             //
             // IMPORTANT:
             // snapshot interpolation requires constant sending.
@@ -264,7 +264,7 @@ namespace Mirror
             // DO NOT send nulls if not changed 'since last send' either. we
             // send unreliable and don't know which 'last send' the other end
             // received successfully.
-            if (NetworkTime.localTime >= lastServerSendTime + sendInterval)
+            if (NetworkTime.localFrameTime >= lastServerSendTime + sendInterval)
             {
                 // send snapshot without timestamp.
                 // receiver gets it from batch timestamp to save bandwidth.
@@ -276,7 +276,7 @@ namespace Mirror
                     syncScale ? snapshot.scale : new Vector3?()
                 );
 
-                lastServerSendTime = NetworkTime.localTime;
+                lastServerSendTime = NetworkTime.localFrameTime;
             }
 
             // apply buffered snapshots IF client authority
@@ -290,7 +290,7 @@ namespace Mirror
                 // compute snapshot interpolation & apply if any was spit out
                 // TODO we don't have Time.deltaTime double yet. float is fine.
                 if (SnapshotInterpolation.Compute(
-                    NetworkTime.localTime, Time.deltaTime,
+                    NetworkTime.localFrameTime, Time.deltaTime,
                     ref serverInterpolationTime,
                     bufferTime, serverBuffer,
                     catchupThreshold, catchupMultiplier,
@@ -309,7 +309,7 @@ namespace Mirror
             if (IsClientWithAuthority)
             {
                 // send to server each 'sendInterval'
-                // NetworkTime.localTime for double precision until Unity has it too
+                // NetworkTime.localFrameTime for double precision until Unity has it too
                 //
                 // IMPORTANT:
                 // snapshot interpolation requires constant sending.
@@ -328,7 +328,7 @@ namespace Mirror
                 // DO NOT send nulls if not changed 'since last send' either. we
                 // send unreliable and don't know which 'last send' the other end
                 // received successfully.
-                if (NetworkTime.localTime >= lastClientSendTime + sendInterval)
+                if (NetworkTime.localFrameTime >= lastClientSendTime + sendInterval)
                 {
                     // send snapshot without timestamp.
                     // receiver gets it from batch timestamp to save bandwidth.
@@ -340,7 +340,7 @@ namespace Mirror
                         syncScale ? snapshot.scale : new Vector3?()
                     );
 
-                    lastClientSendTime = NetworkTime.localTime;
+                    lastClientSendTime = NetworkTime.localFrameTime;
                 }
             }
             // for all other clients (and for local player if !authority),
@@ -350,7 +350,7 @@ namespace Mirror
                 // compute snapshot interpolation & apply if any was spit out
                 // TODO we don't have Time.deltaTime double yet. float is fine.
                 if (SnapshotInterpolation.Compute(
-                    NetworkTime.localTime, Time.deltaTime,
+                    NetworkTime.localFrameTime, Time.deltaTime,
                     ref clientInterpolationTime,
                     bufferTime, clientBuffer,
                     catchupThreshold, catchupMultiplier,
@@ -498,7 +498,7 @@ namespace Mirror
             if (buffer.Count < 2) return;
 
             // calcluate threshold for 'old enough' snapshots
-            double threshold = NetworkTime.localTime - bufferTime;
+            double threshold = NetworkTime.localFrameTime - bufferTime;
             Color oldEnoughColor = new Color(0, 1, 0, 0.5f);
             Color notOldEnoughColor = new Color(0.5f, 0.5f, 0.5f, 0.3f);
 
