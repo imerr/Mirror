@@ -40,7 +40,8 @@ namespace Mirror
         [Range(0, 1)] public float sendInterval = 0.050f;
         public bool syncPosition = true;
         public bool syncRotation = true;
-        public bool syncScale = true;
+        // scale sync is rare. off by default.
+        public bool syncScale = false;
 
         double lastClientSendTime;
         double lastServerSendTime;
