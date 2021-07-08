@@ -447,6 +447,9 @@ namespace Mirror
             // for a buffer multiplier of '3', we usually have at _least_ 3
             // buffered snapshots. often 4-5 even.
             catchupThreshold = Mathf.Max(bufferTimeMultiplier + 1, catchupThreshold);
+
+            // buffer limit should be at least multiplier to have enough in there
+            bufferSizeLimit = Mathf.Max(bufferTimeMultiplier, bufferSizeLimit);
         }
 
         // debug ///////////////////////////////////////////////////////////////
