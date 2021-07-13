@@ -45,6 +45,9 @@ namespace Mirror
         // helper enum to add loop to begin/end of subSystemList
         internal enum AddMode { Beginning, End }
 
+        public static Action OnEarlyUpdate;
+        public static Action OnLateUpdate;
+
         // helper function to find an update function's index in a player loop
         // type. this is used for testing to guarantee our functions are added
         // at the beginning/end properly.
@@ -181,6 +184,7 @@ namespace Mirror
             //Debug.Log("NetworkEarlyUpdate @ " + NetworkTime.localFrameTime);
             NetworkServer.NetworkEarlyUpdate();
             NetworkClient.NetworkEarlyUpdate();
+            OnEarlyUpdate?.Invoke();
         }
 
         static void NetworkLateUpdate()
@@ -188,6 +192,7 @@ namespace Mirror
             //Debug.Log("NetworkLateUpdate @ " + NetworkTime.localFrameTime);
             NetworkServer.NetworkLateUpdate();
             NetworkClient.NetworkLateUpdate();
+            OnLateUpdate?.Invoke();
         }
     }
 }
